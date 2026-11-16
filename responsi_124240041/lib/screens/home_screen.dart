@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('Hi, ${auth.currentUser?.username ?? 'Explorer'}',
                   style: const TextStyle(fontWeight: FontWeight.w700)),
-              const Text('Explore the Rick & Morty universe',
+              const Text('Explore the SpaceNews universe',
                   style: TextStyle(fontSize: 12, color: AppColors.muted)),
             ]),
           ),

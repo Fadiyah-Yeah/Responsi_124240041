@@ -5,6 +5,7 @@ import 'services/database_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/explorer_provider.dart';
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.instance.database;
