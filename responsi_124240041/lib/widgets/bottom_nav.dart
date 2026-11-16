@@ -14,7 +14,7 @@ class BottomNav extends StatelessWidget {
     indicatorColor: AppColors.mist,
     destinations: const [
       NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-      NavigationDestination(icon: Icon(Icons.favorite_border), label: 'Favorite'),
+      NavigationDestination(icon: Icon(Icons.bookmarks_outlined), label: 'Bookmark'),
       NavigationDestination(icon: Icon(Icons.live_tv_outlined), label: 'Profile'),
     ],
   );

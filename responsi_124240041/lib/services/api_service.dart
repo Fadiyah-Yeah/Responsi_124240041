@@ -6,23 +6,40 @@ class ApiService {
   static const base = 'https://api.spaceflightnewsapi.net/v4/articles';
 
   Future<Map<String, dynamic>> news({
-    int page = 1, String title = '', String news_site = 'All',
+    int page = 1,
+    int limit = 12, // Memastikan minimal 10 berita tampil
+    String title = '',
+    String newsSite = 'All',
   }) async {
-    final q = <String, String>{'page': '$page'};
-    if (title.trim().isNotEmpty) q['title'] = title.trim();
-    if (news_site != 'All') q['news_site'] = news_site.toLowerCase();
-    final r = await http.get(Uri.parse('$base/news').replace(queryParameters: q));
-    if (r.statusCode == 404) return {'results': [], 'info': {'next': null}};
-    if (r.statusCode != 200) throw Exception('Gagal mengambil berita. Periksa internet.');
+    final offset = (page - 1) * limit;
+    final q = <String, String>{
+      'limit': '$limit',
+      'offset': '$offset',
+    };
+
+    if (title.trim().isNotEmpty) q['title_contains'] = title.trim();
+    if (newsSite != 'All' && newsSite.isNotEmpty) q['news_site'] = newsSite;
+
+    final r = await http.get(Uri.parse(base).replace(queryParameters: q));
+    if (r.statusCode == 404) return {'results': [], 'next': null};
+    if (r.statusCode != 200) {
+      throw Exception('Gagal mengambil berita. Periksa koneksi internet.');
+    }
     return jsonDecode(r.body) as Map<String, dynamic>;
   }
 
   Future<List<News>> newsByIds(List<int> ids) async {
     if (ids.isEmpty) return [];
-    final r = await http.get(Uri.parse('$base/news/${ids.join(',')}'));
-    if (r.statusCode != 200) throw Exception('Gagal memuat favorite.');
-    final decoded = jsonDecode(r.body);
-    final list = decoded is List ? decoded : [decoded];
-    return list.map((e) => News.fromJson(e as Map<String, dynamic>)).toList();
+    // Spaceflight News v4 mendukung filter berdasarkan daftar ID jika diperlukan,
+    // atau ambil satu per satu secara paralel
+    final futures = ids.map((id) async {
+      final r = await http.get(Uri.parse('$base/$id'));
+      if (r.statusCode == 200) {
+        return News.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+      }
+      return null;
+    });
+    final results = await Future.wait(futures);
+    return results.whereType<News>().toList();
   }
 }

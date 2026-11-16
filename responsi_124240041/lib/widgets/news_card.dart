@@ -5,77 +5,143 @@ import '../models/news.dart';
 class NewsCard extends StatelessWidget {
   final News news;
   final bool favorite;
-  final VoidCallback onTap, onFavorite;
+  final VoidCallback onTap;
+  final VoidCallback onFavorite;
+
   const NewsCard({
-    super.key, required this.news, required this.favorite,
-    required this.onTap, required this.onFavorite,
+    super.key,
+    required this.news,
+    required this.favorite,
+    required this.onTap,
+    required this.onFavorite,
   });
 
-  Color get _statusColor {
-    switch (news.news_site.toLowerCase()) {
-      case 'alive': return AppColors.sage;
-      case 'dead': return AppColors.danger;
-      default: return AppColors.muted;
+  String _formatDate(String isoDate) {
+    if (isoDate.isEmpty) return '-';
+    try {
+      final dt = DateTime.parse(isoDate).toLocal();
+      const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      ];
+      return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
+    } catch (_) {
+      return isoDate.split('T').first;
     }
   }
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: AppColors.white,
-    borderRadius: BorderRadius.circular(17),
-    child: InkWell(
+  Widget build(BuildContext context) {
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(17),
       child: Container(
-        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: AppColors.sand.withOpacity(.7)),
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.sand),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: InkWell(
-                onTap: onFavorite,
-                child: Icon(
-                  favorite ? Icons.favorite : Icons.favorite_border,
-                  color: favorite ? AppColors.danger : AppColors.ink,
-                  size: 20,
+            // 1. Gambar Berita + Tombol Bookmark
+            Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 16 / 10,
+                  child: news.image_url.isNotEmpty
+                      ? Image.network(
+                          news.image_url,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: AppColors.sand,
+                            child: const Icon(Icons.broken_image, color: AppColors.muted),
+                          ),
+                        )
+                      : Container(
+                          color: AppColors.sand,
+                          child: const Icon(Icons.article, color: AppColors.muted),
+                        ),
                 ),
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(13),
-                  child: Image.network(
-                    news.image_url,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.person_outline, size: 42, color: AppColors.moss,
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppColors.white.withOpacity(0.9),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      iconSize: 18,
+                      icon: Icon(
+                        favorite ? Icons.bookmark : Icons.bookmark_border,
+                        color: favorite ? AppColors.sage : AppColors.ink,
+                      ),
+                      onPressed: onFavorite,
                     ),
                   ),
                 ),
+              ],
+            ),
+
+            // 2. Sumber Berita, Judul, & Tanggal Publikasi
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Sumber Berita (news_site)
+                    Text(
+                      news.news_site,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.sage,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Judul Berita
+                    Expanded(
+                      child: Text(
+                        news.title,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                          height: 1.25,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // Tanggal Publikasi
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 11, color: AppColors.muted),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            _formatDate(news.published_at),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.muted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              news.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            Row(children: [
-              CircleAvatar(radius: 4, backgroundColor: _statusColor),
-              const SizedBox(width: 6),
-              Text(news.news_site, style: const TextStyle(fontSize: 11, color: AppColors.muted)),
-            ]),
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }

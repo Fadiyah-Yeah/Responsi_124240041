@@ -4,6 +4,9 @@ import '../core/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_field.dart';
+import 'favorite_screen.dart';
+import 'home_screen.dart';
+import '../widgets/bottom_nav.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -26,6 +29,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     username.dispose(); password.dispose(); confirm.dispose(); super.dispose();
+  }
+
+  void _tab(int index) {
+    if (index == 0) return;
+    final page = index == 1 ? const HomeScreen() : const FavoriteScreen();
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 
   Future<void> _saveName() async {
@@ -111,6 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: OutlinedButton.styleFrom(foregroundColor: AppColors.danger),
         ),
       ]),
+      bottomNavigationBar: BottomNav(index: 2, onTap: _tab),
     ),
   );
 }
