@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart'; 
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'; 
 
 class DatabaseService {
   DatabaseService._();
@@ -8,6 +10,11 @@ class DatabaseService {
 
   Future<Database> get database async {
     if (_db != null) return _db!;
+
+    if (kIsWeb) {
+      databaseFactory = databaseFactoryFfiWeb;
+    }
+
     final dir = await getDatabasesPath();
     _db = await openDatabase(
       p.join(dir, 'news.db'),
@@ -32,7 +39,11 @@ class DatabaseService {
         ''');
       },
     );
-    await _db!.execute('PRAGMA foreign_keys = ON');
+
+    try {
+      await _db!.execute('PRAGMA foreign_keys = ON');
+    } catch (_) {}
+
     return _db!;
   }
 
